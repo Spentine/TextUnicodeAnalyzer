@@ -1,0 +1,70 @@
+/* import unifont font */
+@font-face {
+  font-family: "Unifont";
+  src: url("unifont-16.0.04.otf") format("opentype");
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  
+  overflow: none;
+}
+
+p {
+  font-size: 16px;
+}
+
+.root {
+  background: linear-gradient(45deg, #202020, #282828);
+  
+  font-family: "Unifont", sans-serif;
+  color: #ffffff;
+  
+  margin: 0;
+  padding: 0;
+  
+  width: 100vw;
+  height: 100vh;
+  
+  overflow: none;
+  
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: stretch;
+}
+
+.sidebar {
+  width: 250px;
+  
+  background: linear-gradient(45deg, #303030, #383838);
+  border: 1px solid #404040;
+  box-shadow: 0 0 8px #00000080;
+  
+  z-index: 2;
+}
+
+.center-content {
+  flex: 1;
+  
+  padding: 16px;
+  
+  z-index: 1;
+  
+  overflow: auto;
+}
+
+.text-area {
+  background: linear-gradient(45deg, #282828, #303030);
+  border: 1px solid #404040;
+  box-shadow: 0 0 8px #00000080;
+  
+  padding: 8px;
+  display: inline-block;
+}
+
+.unicode-character {
+  display: inline-block;
+  white-space: pre;
+}
