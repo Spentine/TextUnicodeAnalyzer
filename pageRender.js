@@ -81,6 +81,18 @@ class UnicodeTextAnalyzerPage {
    * like highlighting characters based on their Unicode properties
    */
   markTextArea() {
+    const makeUnicodeCharacterDiv = (char) => {
+      const div = document.createElement("div");
+      div.textContent = char;
+      div.className = "unicode-character";
+      div.contentEditable = false; // make the divs non-editable
+      
+      div.charCode = char.charCodeAt(0);
+      div.style.backgroundColor = `hsl(${(div.charCode * 10) % 360}, 50%, 20%)`; // color based on char code
+      
+      return div;
+    };
+    
     const children = this.textArea.childNodes;
     for (let i = 0; i < children.length; i++) {
       const child = children[i];
@@ -88,34 +100,26 @@ class UnicodeTextAnalyzerPage {
       if (child.nodeType === Node.TEXT_NODE) {
         // insert divs around each character
         const text = child.textContent;
-        const newDivs = [];
         console.log(text);
-        for (let j = 0; j < text.length; j++) {
-          const div = document.createElement("div");
-          div.textContent = text[j];
-          div.className = "unicode-character";
+        if (text === "\n") {
+          // make a text node for newlines
+          const newLine = document.createTextNode("\n");
           
-          const charCode = text.charCodeAt(j);
-          div.style.backgroundColor = `hsl(${(charCode * 10) % 360}, 50%, 20%)`; // color based on char code
-          
-          div.contentEditable = false; // make the divs non-editable
-          
-          newDivs.push(div);
+          this.textArea.insertBefore(newLine, child);
+          this.textArea.removeChild(child);
+        } else {
+          const newDivs = [];
+          for (let j = 0; j < text.length; j++) {
+            const div = makeUnicodeCharacterDiv(text[j]);
+            
+            newDivs.push(div);
+          }
+          // replace the text node with the new divs
+          newDivs.forEach(
+            div => this.textArea.insertBefore(div, child)
+          );
+          this.textArea.removeChild(child);
         }
-        // replace the text node with the new divs
-        newDivs.forEach(
-          div => this.textArea.insertBefore(div, child)
-        );
-        this.textArea.removeChild(child);
-      }
-      // check if it's a <br>
-      else if (child.nodeName === "BR") {
-        // replace <br> with a div
-        const div = document.createElement("div");
-        div.className = "unicode-character";
-        div.textContent = "\n"; // keep the line break
-        this.textArea.insertBefore(div, child);
-        this.textArea.removeChild(child);
       }
     }
   }
