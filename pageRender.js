@@ -22,7 +22,12 @@ class UnicodeTextAnalyzerPage {
     this.textArea = document.createElement("div");
     this.textArea.className = "text-area";
     this.textArea.contentEditable = true;
-    this.textArea.textContent = "Change the text here to analyze Unicode characters. ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    this.textArea.textContent = (
+      `Change the text here to analyze Unicode characters.\n` +
+      `ABCDEFGHIJKLMNOPQRSTUVWXYZ\n\n` +
+      `It contains support for characters above U+FFFF\n` + 
+      `𰻞𰻞麺は好きですか`
+    );
     this.markTextArea();
     this.textArea.addEventListener("focusout", () => {this.markTextArea()});
     
@@ -91,10 +96,16 @@ class UnicodeTextAnalyzerPage {
       div.className = "unicode-character";
       div.contentEditable = false; // make the divs non-editable
       
-      div.charCode = char.charCodeAt(0);
-      div.style.backgroundColor = `hsl(${(div.charCode * 10) % 360}, 50%, 20%)`; // color based on char code
+      const codePoint = char.codePointAt(0);
+      console.log(char, codePoint);
+      div.style.backgroundColor = `hsl(${(codePoint * 10) % 360}, 50%, 20%)`; // color based on char code
       
       return div;
+    };
+    
+    const isSurrogatePair = (char) => {
+      const code = char.charCodeAt(0);
+      return (code >= 0xD800 && code <= 0xDBFF) || (code >= 0xDC00 && code <= 0xDFFF);
     };
     
     const children = this.textArea.childNodes;
@@ -104,10 +115,17 @@ class UnicodeTextAnalyzerPage {
       if (child.nodeType === Node.TEXT_NODE) {
         // insert divs around each character
         const text = child.textContent;
-        console.log(text);
         const newDivs = [];
         for (let j = 0; j < text.length; j++) {
-          const div = makeUnicodeCharacterDiv(text[j]);
+          let char = text[j];
+          
+          // handle surrogate pairs
+          if (isSurrogatePair(char) && j < text.length - 1) {
+            // combine surrogate pairs
+            char += text[++j];
+          }
+          
+          const div = makeUnicodeCharacterDiv(char);
           
           newDivs.push(div);
         }
