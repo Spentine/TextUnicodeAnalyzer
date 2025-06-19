@@ -1,3 +1,8 @@
+import {
+  unicodeInformation,
+  unicodeDataReady,
+} from "./unicodeUtil.js";
+
 class UnicodeTextAnalyzerPage {
   /**
    * construct page
@@ -52,15 +57,18 @@ class UnicodeTextAnalyzerPage {
       range.setEndAfter(textNode);
     });
     
+    // the last char to get info about
+    this.lastChar = null;
+    
     // this.textArea.addEventListener("focusout", () => {
     //   this.viewMode();
     // });
     // this.textArea.addEventListener("mouseout", () => {
     //   this.viewMode();
     // });
-    this.textArea.addEventListener("click", () => {
-      this.editMode();
-    });
+    // this.textArea.addEventListener("click", () => {
+    //   this.editMode();
+    // });
     
     // add left sidebar content
     this.modeButton = document.createElement("button");
@@ -84,16 +92,18 @@ class UnicodeTextAnalyzerPage {
       let str;
       
       if (selection.rangeCount === 0) {
-        str = "No selection";
+        str = "No selection\n";
       } else {
         const range = selection.getRangeAt(0);
         str = (
           `[${range.startOffset}-${range.endOffset}) \n` +
-          `Selection: "${range.toString()}"\n` +
-          (range.toString().length === 1
-            ? `Unicode Code Point: ${range.toString().codePointAt(0)}\n`
-            : ``
-          )
+          `Selection: "${range.toString()}"\n`
+        );
+      }
+      if (this.lastChar !== null) {
+        str += (
+          `Unicode Code Point: ${this.lastChar}\n` +
+          `Unicode Data: ${JSON.stringify(unicodeInformation[this.lastChar.codePointAt(0)], null, 2)}\n`
         );
       }
       
@@ -115,18 +125,13 @@ class UnicodeTextAnalyzerPage {
    */
   markTextArea(text) {
     const makeUnicodeCharacterDiv = (char) => {
-      const returnElements = [];
-      
-      let renderChar = char;
       if (char === "\n") {
         // create a text node for newlines
-        returnElements.push(document.createTextNode("\n"));
-        renderChar = "";
-        return returnElements;
+        return document.createTextNode("\n");
       }
       
       const div = document.createElement("span");
-      div.textContent = renderChar;
+      div.textContent = char;
       div.className = "unicode-character";
       div.contentEditable = false; // make the divs non-editable
       
@@ -134,15 +139,7 @@ class UnicodeTextAnalyzerPage {
       // console.log(char, codePoint);
       div.style.backgroundColor = `hsl(${(codePoint * 10) % 360}, 50%, 20%)`; // color based on char code
       
-      returnElements.push(div);
-      
-      if (char === "\n") {
-        // make the width of the newline div 0px
-        div.style.width = "0px";
-        div.style.minWidth = "0px";
-      }
-      
-      return returnElements;
+      return div;
     };
     
     const isSurrogatePair = (char) => {
@@ -150,23 +147,27 @@ class UnicodeTextAnalyzerPage {
       return (code >= 0xD800 && code <= 0xDBFF) || (code >= 0xDC00 && code <= 0xDFFF);
     };
     
+    if (text.length > 30000) {
+      return "way too long";
+    }
+    
+    // clear existing content
+    while (this.textArea.firstChild) {
+      this.textArea.removeChild(this.textArea.firstChild);
+    }
+    
     const currentTime = Date.now();
     
-    for (let i = 0; i < text.length; i++) {
-      let char = text[i];
-      
-      // handle surrogate pairs
-      if (isSurrogatePair(char) && i < text.length - 1) {
-        // combine surrogate pairs
-        char += text[++i];
-      }
-      
+    for (const char of text) {
       const div = makeUnicodeCharacterDiv(char);
       
-      // insert div
-      for (const element of div) {
-        this.textArea.appendChild(element);
+      function hovered() {
+        this.lastChar = char;
       }
+      
+      // insert div
+      this.textArea.appendChild(div);
+      div.addEventListener("mouseover", hovered.bind(this));
     }
     
     const timeTaken = Date.now() - currentTime;
@@ -183,11 +184,6 @@ class UnicodeTextAnalyzerPage {
     
     // save existing text
     this.text = this.textArea.textContent;
-    
-    // clear existing content
-    while (this.textArea.firstChild) {
-      this.textArea.removeChild(this.textArea.firstChild);
-    }
     
     this.markTextArea(this.text);
   }
