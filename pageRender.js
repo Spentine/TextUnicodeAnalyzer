@@ -82,6 +82,10 @@ class UnicodeTextAnalyzerPage {
    */
   markTextArea() {
     const makeUnicodeCharacterDiv = (char) => {
+      if (char === "\n") {
+        // create a text node for newlines
+        return document.createTextNode("\n");
+      }
       const div = document.createElement("div");
       div.textContent = char;
       div.className = "unicode-character";
@@ -101,25 +105,17 @@ class UnicodeTextAnalyzerPage {
         // insert divs around each character
         const text = child.textContent;
         console.log(text);
-        if (text === "\n") {
-          // make a text node for newlines
-          const newLine = document.createTextNode("\n");
+        const newDivs = [];
+        for (let j = 0; j < text.length; j++) {
+          const div = makeUnicodeCharacterDiv(text[j]);
           
-          this.textArea.insertBefore(newLine, child);
-          this.textArea.removeChild(child);
-        } else {
-          const newDivs = [];
-          for (let j = 0; j < text.length; j++) {
-            const div = makeUnicodeCharacterDiv(text[j]);
-            
-            newDivs.push(div);
-          }
-          // replace the text node with the new divs
-          newDivs.forEach(
-            div => this.textArea.insertBefore(div, child)
-          );
-          this.textArea.removeChild(child);
+          newDivs.push(div);
         }
+        // replace the text node with the new divs
+        newDivs.forEach(
+          div => this.textArea.insertBefore(div, child)
+        );
+        this.textArea.removeChild(child);
       }
     }
   }
