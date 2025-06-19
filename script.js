@@ -1,8 +1,8 @@
-import { UnicodeTextAnalyzer } from "./pageRender.js";
+import { UnicodeTextAnalyzerPage } from "./pageRender.js";
 
 function main() {
   const appElement = document.getElementById("app");
-  const uta = new UnicodeTextAnalyzer({
+  const uta = new UnicodeTextAnalyzerPage({
     rootElement: appElement,
   });
 }

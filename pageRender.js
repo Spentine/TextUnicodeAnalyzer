@@ -1,4 +1,4 @@
-class UnicodeTextAnalyzer {
+class UnicodeTextAnalyzerPage {
   /**
    * construct page
    */
@@ -26,6 +26,53 @@ class UnicodeTextAnalyzer {
     this.markTextArea();
     this.textArea.addEventListener("focusout", () => {this.markTextArea()});
     
+    // fix paste events
+    this.textArea.addEventListener("paste", (event) => {
+      // get only the text
+      event.preventDefault();
+      const text = event.clipboardData.getData("text/plain");
+      
+      // delete text that has been pasted over
+      const selection = window.getSelection();
+      if (selection.rangeCount > 0) {
+        const range = selection.getRangeAt(0);
+        range.deleteContents(); // remove the selected text
+      }
+      
+      // insert the text as a textnode
+      const textNode = document.createTextNode(text);
+      const range = selection.getRangeAt(0);
+      range.insertNode(textNode);
+      
+      // move the cursor to the end of the inserted text
+      range.setStartAfter(textNode);
+      range.setEndAfter(textNode);
+    });
+    
+    // add left sidebar content
+    this.debug = document.createElement("p");
+    
+    function debug() {
+      const selection = window.getSelection();
+      
+      let str;
+      
+      if (selection.rangeCount === 0) {
+        str = "No selection";
+      } else {
+        const range = selection.getRangeAt(0);
+        str = (`[${range.startOffset}-${range.endOffset}) ` +
+               `Selection: "${range.toString()}"\n`);
+      }
+      
+      this.debug.textContent = str;
+      window.requestAnimationFrame(debug.bind(this));
+    }
+    
+    window.requestAnimationFrame(debug.bind(this));
+    
+    this.leftSidebar.appendChild(this.debug);
+    
     this.centerContent.appendChild(this.textArea);
   }
   
@@ -42,13 +89,14 @@ class UnicodeTextAnalyzer {
         // insert divs around each character
         const text = child.textContent;
         const newDivs = [];
+        console.log(text);
         for (let j = 0; j < text.length; j++) {
           const div = document.createElement("div");
           div.textContent = text[j];
           div.className = "unicode-character";
           
           const charCode = text.charCodeAt(j);
-          div.style.backgroundColor = `hsl(${(charCode * 10) % 360}, 50%, 50%)`; // color based on char code
+          div.style.backgroundColor = `hsl(${(charCode * 10) % 360}, 50%, 20%)`; // color based on char code
           
           div.contentEditable = false; // make the divs non-editable
           
@@ -60,10 +108,19 @@ class UnicodeTextAnalyzer {
         );
         this.textArea.removeChild(child);
       }
+      // check if it's a <br>
+      else if (child.nodeName === "BR") {
+        // replace <br> with a div
+        const div = document.createElement("div");
+        div.className = "unicode-character";
+        div.textContent = "\n"; // keep the line break
+        this.textArea.insertBefore(div, child);
+        this.textArea.removeChild(child);
+      }
     }
   }
 }
 
 export {
-  UnicodeTextAnalyzer
+  UnicodeTextAnalyzerPage
 };
