@@ -1,5 +1,6 @@
 let unicodeInformation;
 let unicodeBlocks;
+let htmlEntityData;
 let unicodeDataReady = false;
 let readyFunctions = [];
 
@@ -77,11 +78,21 @@ async function getUnicodeInformation() {
     });
   }
   
+  // get html entity data
+  const htmlEntityResponse = await fetch("htmlEntities.json");
+  htmlEntityData = await htmlEntityResponse.json();
+  
   unicodeDataReady = true;
   readyFunctions.forEach((func) => func());
 }
 
-function getCharacterData(char) {
+function getCharacterData(char, extraData) {
+  extraData ??= {
+    getCodePoints: true,
+    getBlock: true,
+    gethtmlEntity: true,
+  }
+  
   if (!unicodeDataReady) {
     return null;
   }
@@ -109,20 +120,40 @@ function getCharacterData(char) {
       titlecaseMapping: null,
     };
   }
-  info.codePoint = codePoint;
-  info.hexCodePoint = codePoint.toString(16).toUpperCase().padStart(4, '0');
+  
+  // get code points
+  if (extraData.getCodePoints) {
+    info.codePoint = codePoint;
+    info.hexCodePoint = codePoint.toString(16).toUpperCase().padStart(4, '0');
+  }
   
   // get code block
-  info.block = unicodeBlocks.find((block) => {
-    return codePoint >= block.start && codePoint <= block.end;
-  });
-  if (info.block) {
-    info.blockName = info.block.name;
-  } else {
-    info.blockName = null;
+  if (extraData.getBlock) {
+    info.block = unicodeBlocks.find((block) => {
+      return codePoint >= block.start && codePoint <= block.end;
+    });
+    if (info.block) {
+      info.blockName = info.block.name;
+    } else {
+      info.blockName = null;
+    }
+  }
+  
+  // get HTML escape character
+  if (extraData.gethtmlEntity) {
+    info.htmlEntity = getHtmlEntity(codePoint);
   }
   
   return info;
+}
+
+function getHtmlEntity(codePoint) {
+  const htmlEntity = htmlEntityData[codePoint];
+  if (!htmlEntity) {
+    return `&#${codePoint};`;
+  } else {
+    return `${htmlEntity} (&#${codePoint};)`;
+  }
 }
 
 const unicodeAttributes = [
@@ -146,6 +177,7 @@ const otherAttributes = [
   "codePoint",
   "hexCodePoint",
   "blockName",
+  "htmlEntity",
 ];
 
 const unicodeCharacterCategories = {

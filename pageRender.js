@@ -57,7 +57,7 @@ class UnicodeTextAnalyzerPage {
         `To start viewing the Unicode properties, set the program back into viewing mode by clicking the button once again.\n\n` +
         `This program supports Unicode characters up to 32-bit code points, which covers all characters in the Unicode standard.\n\n` +
         `Some characters may be composed of multiple characters, such as the rainbow flag (🏳️‍🌈). Diacritics and other modifiers will also be broken up.\n\n` +
-        `Example Characters: 漢ﬃ㎯㊾⅜⁇‱⮇ n̶͕̱͑̋̃o̶̞͇̱͌̑ǹ̷̯̏s̷̛̜̠̾p̴̲͚͗́͌ã̶̻̓͝c̶͕̯͑͗ͅi̸͕͒n̵̡̮̓ͅg̴̞̥͕̋̀͝ ̷͖́͋m̴̨͙͆̌͋ā̷̝̩́͆r̴͈̐̒͘k̴̏́͜ș̷̔ `
+        `Example Characters: ℤ∮ϰᚦ₨ゔ𐎀∽Җཤ∅ඞ⩲ʯ⅝∌⟂∗ᠰሐ⧖₪ఌ⇋≭⧁⸸ᓚ๛⊉ƿሴ₭∞☊ᜎ✿⚖߷⌺ҫゑ።≜⫟₣Жℓ∜ዓ⊰♺҂ఽ☍⨍₩∄ᛏ∕↯Ꙩ჻ೲ⪸⇄⨉℘ʃ₦⟟ወ⇀⧉∯⛧ᖴቅಀʚ∵≣∖⠉₡ઽ⁂⤷Ꜷ⇵∍ዶᚱʠ᠁⇭℧Ԉ⊷⛢₴ޝϞϗ⚜∴֎≙⇅Ѻ⫫⧽ἤ⊿㍍ऀ₫⋵⅐∱₲₷ߑꜰ⍾ባ∭ஂ≎ʮ₤Ꮪ₧∑Ϙ⛩∕ኛ͈͔͍͓͕͖͙͚̓͗͛͘͜͟͠͡ͅ∼∎➾☡ƛ⛽ᴭ⟁ઽ♜꜂⩍❏ѠṎ⇝⇇₨Ꮆꜧ⁗⩹✛⇻☘ʬ⤨⧰⸕⇤∪₱⊹ȸቨ߭⋬⧓﴾₪⊘ᓯ✠༔⸺ᜄ઴₥∋₣☼⍬⧚˩ˬ˳˾͉͢Ꮾ༗₰⩺⟻⩚ℯ∓⋎∬҉⫷ჶ⪮⟰⧴➸⚇⟡⧮₸☄⩃⋮∂₠⊖⩆ƾ⌗⎙⅞Ԝૐ።₵⤩╆☈∉⫸∦⟪✐`
       );
       this.textArea.textContent = this.text;
       
@@ -453,7 +453,11 @@ class UnicodeTextAnalyzerPage {
       );
       
       const categoryIndex = categories.indexOf(
-        getCharacterData(char).category
+        getCharacterData(char, {
+          getCodePoints: false,
+          getBlock: false,
+          htmlEntity: false,
+        }).category
       );
       
       if (categoryIndex === -1) {
@@ -468,7 +472,11 @@ class UnicodeTextAnalyzerPage {
       
       const blocks = unicodeBlocks.map(block => block.name);
       
-      const block = getCharacterData(char).blockName;
+      const block = getCharacterData(char, {
+        getCodePoints: false,
+        getBlock: true,
+        htmlEntity: false,
+      }).blockName;
       
       if (!block) {
         return "#000000"; // default color for unknown blocks

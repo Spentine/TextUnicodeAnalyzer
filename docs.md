@@ -10,3 +10,9 @@ The analyzer should have left and right bars and a header for interaction. There
 - Highlight characters based off of criterion, such as their designated character block or whether they are miscellaneous.
 
 There should also be slices of information that can be accessed by highlighting a particular part of the input text.
+
+## Text File Locations
+
+- `UnicodeData.txt`: https://www.unicode.org/Public/UCD/latest/ucd/UnicodeData.txt
+- `Blocks.txt`: https://www.unicode.org/Public/UCD/latest/ucd/Blocks.txt
+- `entities.json`: https://html.spec.whatwg.org/entities.json
