@@ -82,6 +82,13 @@ class UnicodeTextAnalyzerPage {
         // move the cursor to the end of the inserted text
         range.setStartAfter(textNode);
         range.setEndAfter(textNode);
+        
+        // dispatch input event to update the text area
+        const inputEvent = new Event("input", {
+          bubbles: true,
+          cancelable: true,
+        });
+        this.textArea.dispatchEvent(inputEvent);
       });
       
       textAreaContainer.appendChild(this.textArea);
@@ -307,7 +314,7 @@ class UnicodeTextAnalyzerPage {
     this.minCharWidthInput.min = 0; // minimum value is 0
     
     const minCharWidthLabel = document.createElement("label");
-    minCharWidthLabel.textContent = "Minimum Character Width: ";
+    minCharWidthLabel.textContent = "Min Char Width: ";
     minCharWidthLabel.htmlFor = "min-char-width-input";
     
     // add interaction for minimum character width input
@@ -323,7 +330,7 @@ class UnicodeTextAnalyzerPage {
     this.textAlignInput.id = "text-align-input";
     
     const textAlignLabel = document.createElement("label");
-    textAlignLabel.textContent = "Text Align: ";
+    textAlignLabel.textContent = "Char Text Align: ";
     textAlignLabel.htmlFor = "text-align-input";
     
     // add options to the text align dropdown
@@ -360,11 +367,8 @@ class UnicodeTextAnalyzerPage {
     const characterViewOptions = {
       hover: "hover",
       hoverUntilClick: "hover until click",
-      none: "none",
+      none: "do not change",
     };
-    
-    // set value
-    this.characterViewDropdown.value = this.charView.mode;
     
     // add options to the dropdown
     for (const [value, text] of Object.entries(characterViewOptions)) {
@@ -373,6 +377,9 @@ class UnicodeTextAnalyzerPage {
       option.textContent = text;
       this.characterViewDropdown.appendChild(option);
     }
+    
+    // set value
+    this.characterViewDropdown.value = this.charView.mode;
     
     // add interaction for character view dropdown
     this.characterViewDropdown.addEventListener("change", (event) => {
@@ -433,12 +440,49 @@ class UnicodeTextAnalyzerPage {
       document.body.style.setProperty("--character-size", `${fontSize}px`);
     });
     
+    // add input for unicode character
+    this.unicodeCharacterInput = document.createElement("input");
+    this.unicodeCharacterInput.type = "text";
+    this.unicodeCharacterInput.className = "unicode-character-input";
+    this.unicodeCharacterInput.placeholder = "enter code point";
+    this.unicodeCharacterInput.step = 1; // allow whole numbers
+    this.unicodeCharacterInput.min = 0; // minimum value is 0
+    this.unicodeCharacterInput.value = ""; // empty by default
+    
+    this.insertUnicodeCharacterButton = document.createElement("button");
+    this.insertUnicodeCharacterButton.className = "insert-unicode-character-button";
+    this.insertUnicodeCharacterButton.textContent = "Insert Character";
+    this.insertUnicodeCharacterButton.addEventListener("click", () => {
+      const codePoint = parseInt(this.unicodeCharacterInput.value.trim(), 16);
+      if (isNaN(codePoint)) return; // invalid input
+      const char = String.fromCodePoint(codePoint);
+      this.textArea.textContent += char;
+    });
+    
+    // add basic text information
+    this.textInfo = document.createElement("p");
+    this.textInfo.className = "text-info";
+    function updateTextInfo() {
+      this.textInfo.textContent = (
+        `UTF-16 Code Points: ${this.textArea.textContent.length}\n`
+      );
+    }
+    updateTextInfo.call(this);
+    this.textArea.addEventListener("input", updateTextInfo.bind(this));
+    
     // add everything to the left sidebar
     this.leftSidebar.appendChild(this.modeButton);
     
     this.leftSidebar.appendChild(document.createElement("hr"));
     this.leftSidebar.appendChild(fontSizeLabel);
     this.leftSidebar.appendChild(this.fontSizeInput);
+    
+    this.leftSidebar.appendChild(document.createElement("hr"));
+    this.leftSidebar.appendChild(this.insertUnicodeCharacterButton);
+    this.leftSidebar.appendChild(this.unicodeCharacterInput);
+    
+    this.leftSidebar.appendChild(document.createElement("hr"));
+    this.leftSidebar.appendChild(this.textInfo);
   }
   
   static highlightingModes = {
@@ -489,6 +533,9 @@ class UnicodeTextAnalyzerPage {
         const hue = (blockIndex * 10 * 360) / blocks.length;
         return `hsl(${hue}, 50%, 20%)`;
       } 
+    },
+    none: function (char) {
+      return ""; // default color for no highlighting
     }
   }
   
@@ -520,13 +567,19 @@ class UnicodeTextAnalyzerPage {
       return (code >= 0xD800 && code <= 0xDBFF) || (code >= 0xDC00 && code <= 0xDFFF);
     };
     
-    if (text.length > 30000) {
-      return "way too long";
-    }
-    
     // clear existing content
     while (this.textArea.firstChild) {
       this.textArea.removeChild(this.textArea.firstChild);
+    }
+    
+    if (
+      highlighting.name === "none" ||
+      text.length > 30000
+    ) {
+      // if no highlighting, just insert text as a single text node
+      const textNode = document.createTextNode(text);
+      this.textArea.appendChild(textNode);
+      return;
     }
     
     const currentTime = Date.now();
@@ -573,7 +626,7 @@ class UnicodeTextAnalyzerPage {
       // insert div
       this.textArea.appendChild(div);
       div.addEventListener("mouseover", hovered.bind(this));
-      div.addEventListener("mouseout", unhovered.bind(this));
+      // div.addEventListener("mouseout", unhovered.bind(this));
       div.addEventListener("click", clicked.bind(this));
     }
     

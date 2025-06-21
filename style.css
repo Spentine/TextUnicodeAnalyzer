@@ -75,7 +75,7 @@ input {
   border-radius: 2px;
   box-shadow: 0 0 4px #00000080;
   
-  width: 50px;
+  width: 100px;
   
   margin-bottom: 16px;
   padding: 8px;
@@ -226,4 +226,8 @@ tr:nth-child(odd) {
 
 .dotted-circle {
   color: #ffffff40;
+}
+
+.unicode-character-input {
+  margin-left: 8px;
 }
