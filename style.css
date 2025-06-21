@@ -21,6 +21,10 @@ p {
   font-size: inherit;
 }
 
+td {
+  white-space: pre-wrap;
+}
+
 button {
   color: inherit;
   font-family: inherit;

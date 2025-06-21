@@ -10,7 +10,7 @@ async function getUnicodeInformation() {
   unicodeInformation = {};
   
   for (const line of lines) {
-    const data = line.split(";");
+    const data = line.split("#")[0].split(";");
     const key = parseInt(data[0].trim(), 16); // Convert hex to number
     if (data.length === 1) continue;
     let decomposition = data[5].trim();
@@ -26,7 +26,7 @@ async function getUnicodeInformation() {
       if (first[0] === "<") {
         decomposition = {
           type: first,
-          char: [decomposition.slice(1)]
+          char: decomposition.slice(1)
         };
       } else {
         decomposition = {
@@ -49,7 +49,7 @@ async function getUnicodeInformation() {
       isoComment: data[11].trim(),
       uppercaseMapping: data[12].trim(),
       lowercaseMapping: data[13].trim(),
-      titlecaseMapping: data[14].split("#")[0].trim(),
+      titlecaseMapping: data[14].trim(),
     };
   }
   
@@ -65,16 +65,17 @@ function getCharacterData(char) {
   }
   
   const codePoint = char.codePointAt(0);
-  const info = unicodeInformation[codePoint];
-  if (info) {
-    return info;
-  } else {
-    return {
+  let info = unicodeInformation[codePoint];
+  if (!info) {
+    info = {
       name: null,
       category: null,
       combiningClass: null,
       bidiClass: null,
-      decomposition: null,
+      decomposition: {
+        type: null,
+        char: null
+      },
       decimalDigitValue: null,
       digitValue: null,
       numericValue: null,
@@ -86,6 +87,9 @@ function getCharacterData(char) {
       titlecaseMapping: null,
     };
   }
+  info.codePoint = codePoint;
+  info.hexCodePoint = codePoint.toString(16).toUpperCase().padStart(4, '0');
+  return info;
 }
 
 const unicodeAttributes = [
@@ -103,6 +107,11 @@ const unicodeAttributes = [
   "uppercaseMapping",
   "lowercaseMapping",
   "titlecaseMapping",
+];
+
+const otherAttributes = [
+  "codePoint",
+  "hexCodePoint",
 ];
 
 const unicodeCharacterCategories = {
@@ -256,5 +265,6 @@ export {
   readyFunctions,
   getCharacterData,
   unicodeAttributes,
+  otherAttributes,
   unicodeReadableMap,
 };
