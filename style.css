@@ -253,3 +253,7 @@ tr:nth-child(odd) {
 .unicode-character-input {
   margin-left: 8px;
 }
+
+.text-info {
+  white-space: pre-wrap;
+}

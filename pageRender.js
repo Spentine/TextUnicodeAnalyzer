@@ -65,12 +65,8 @@ class UnicodeTextAnalyzerPage {
       this.viewArea = document.createElement("div");
       this.viewArea.className = "view-area";
       
-      function resizeTextArea() {
-        this.textArea.style.height = "auto"; // reset height to auto to shrink
-        this.textArea.style.height = this.textArea.scrollHeight + "px";
-      }
-      resizeTextArea.call(this);
-      this.textArea.addEventListener("input", resizeTextArea.bind(this));
+      this.resizeTextArea();
+      this.textArea.addEventListener("input", this.resizeTextArea.bind(this));
       
       function handleHovers() {
         // only allow view mode
@@ -264,6 +260,11 @@ class UnicodeTextAnalyzerPage {
     }
   }
   
+  resizeTextArea() {
+    this.textArea.style.height = "auto"; // reset height to auto to shrink
+    this.textArea.style.height = this.textArea.scrollHeight + "px";
+  }
+  
   createModeButton() {
     this.modeButton = document.createElement("button");
     this.modeButton.textContent = (
@@ -422,6 +423,17 @@ class UnicodeTextAnalyzerPage {
       this.charView.mode = value;
     });
     
+    // add text information
+    this.textInfo = document.createElement("p");
+    this.textInfo.className = "text-info";
+    function updateTextInfo() {
+      this.textInfo.textContent = (
+        `UTF-16 Code Points: ${this.viewArea.textContent.length}\n` +
+        `Characters: ${Array.from(this.viewArea.textContent).length}`
+      );
+    }
+    updateTextInfo.call(this);
+    
     // add everything to the left sidebar
     this.leftSidebar.appendChild(this.modeButton);
     
@@ -444,6 +456,9 @@ class UnicodeTextAnalyzerPage {
     this.leftSidebar.appendChild(document.createElement("hr"));
     this.leftSidebar.appendChild(characterViewDropdownLabel);
     this.leftSidebar.appendChild(this.characterViewDropdown);
+    
+    this.leftSidebar.appendChild(document.createElement("hr"));
+    this.leftSidebar.appendChild(this.textInfo);
   }
   
   addEditModeContents() {
@@ -499,7 +514,7 @@ class UnicodeTextAnalyzerPage {
     this.textInfo.className = "text-info";
     function updateTextInfo() {
       this.textInfo.textContent = (
-        `UTF-16 Code Points: ${this.textArea.value.length}\n`
+        `UTF-16 Code Points: ${this.textArea.value.length}`
       );
     }
     updateTextInfo.call(this);
@@ -629,10 +644,8 @@ class UnicodeTextAnalyzerPage {
     this.text = this.textArea.value; // update text from text area
     
     if (this.mode === "view") return; // already in view mode
-    this.addViewModeContents();
     
     this.mode = "view";
-    this.modeButton.textContent = "Currently Viewing";
     
     this.viewArea.style.display = "block"; // show the view area
     this.textArea.style.display = "none"; // hide the text area
@@ -641,18 +654,20 @@ class UnicodeTextAnalyzerPage {
       this.text,
       UnicodeTextAnalyzerPage.highlightingModes[this.highlightingMode],
     );
+    
+    this.addViewModeContents();
   }
   
   editMode() {
     if (this.mode === "edit") return; // already in edit mode
-    this.addEditModeContents();
     
     this.mode = "edit";
-    this.modeButton.textContent = "Currently Editing";
     
     this.viewArea.style.display = "none"; // hide the view area
     this.textArea.style.display = "block"; // show the text area
     this.charView.selectedChar = null; // reset selected char
+    
+    this.addEditModeContents();
   }
   
   displayCharacterData(char) {
