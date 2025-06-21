@@ -20,6 +20,10 @@ class UnicodeTextAnalyzerPage {
       minCharWidth: 0.5, // default minimum character width
       textAlign: "left", // default text align
     };
+    this.charView = {
+      mode: "hover",
+      selectedChar: null, // selected char element
+    };
     const stylesheet = document.getElementById("stylesheet");
     
     this.highlightingMode = "rainbow"; // default highlighting mode
@@ -101,12 +105,20 @@ class UnicodeTextAnalyzerPage {
       this.characterData = document.createElement("div");
       this.characterData.className = "character-data";
       
+      this.largeCharacterViewContainer = document.createElement("div");
+      this.largeCharacterViewContainer.className = "large-character-view-container";
+      
       this.largeCharacterView = document.createElement("div");
       this.largeCharacterView.className = "large-character-view";
+      
+      this.clipboardButton = document.createElement("button");
+      this.clipboardButton.className = "clipboard-button";
+      this.clipboardButton.textContent = "Copy to Clipboard";
       
       this.largeCharacter = document.createElement("p");
       this.largeCharacter.className = "large-character";
       
+      // create dotted circle for nonspacing marks
       this.dottedCircle = document.createElement("p");
       this.dottedCircle.className = "large-character dotted-circle";
       this.dottedCircle.textContent = "◌";
@@ -117,11 +129,25 @@ class UnicodeTextAnalyzerPage {
       
       this.largeCharacterView.appendChild(this.dottedCircle);
       this.largeCharacterView.appendChild(this.largeCharacter);
-      this.characterData.appendChild(this.largeCharacterView);
+      this.largeCharacterViewContainer.appendChild(this.clipboardButton);
+      this.largeCharacterViewContainer.appendChild(this.largeCharacterView);
+      this.characterData.appendChild(this.largeCharacterViewContainer);
       this.characterData.appendChild(this.characterDataTable);
       
       // add character view
       this.largeCharacter.textContent = " ";
+      
+      // add clipboard button interaction
+      this.clipboardButton.addEventListener("click", () => {
+        if (this.lastChar === null) return;
+        
+        // copy this.lastChar to clipboard
+        navigator.clipboard.writeText(this.lastChar).then(() => {
+          console.log(`Copied "${this.lastChar}" to clipboard.`);
+        }).catch((err) => {
+          console.error("Failed to copy text: ", err);
+        });
+      });
       
       // create table header
       const headerRow = document.createElement("tr");
@@ -301,8 +327,8 @@ class UnicodeTextAnalyzerPage {
     textAlignLabel.htmlFor = "text-align-input";
     
     // add options to the text align dropdown
-    const options = ["left", "center", "right"];
-    for (const option of options) {
+    const textAlignOptions = ["left", "center", "right"];
+    for (const option of textAlignOptions) {
       const opt = document.createElement("option");
       opt.value = option;
       opt.textContent = option;
@@ -320,6 +346,39 @@ class UnicodeTextAnalyzerPage {
     });
     
     this.highlightingDropdown.addEventListener("change", changedValue.bind(this));
+    
+    // add character viewing option
+    this.characterViewDropdown = document.createElement("select");
+    this.characterViewDropdown.className = "character-view-dropdown";
+    this.characterViewDropdown.id = "character-view-dropdown";
+    
+    const characterViewDropdownLabel = document.createElement("label");
+    characterViewDropdownLabel.textContent = "Selection: ";
+    characterViewDropdownLabel.htmlFor = "character-view-dropdown";
+    
+    // add options to the character view dropdown
+    const characterViewOptions = {
+      hover: "hover",
+      hoverUntilClick: "hover until click",
+      none: "none",
+    };
+    
+    // set value
+    this.characterViewDropdown.value = this.charView.mode;
+    
+    // add options to the dropdown
+    for (const [value, text] of Object.entries(characterViewOptions)) {
+      const option = document.createElement("option");
+      option.value = value;
+      option.textContent = text;
+      this.characterViewDropdown.appendChild(option);
+    }
+    
+    // add interaction for character view dropdown
+    this.characterViewDropdown.addEventListener("change", (event) => {
+      const value = event.target.value;
+      this.charView.mode = value;
+    });
     
     // add everything to the left sidebar
     this.leftSidebar.appendChild(this.modeButton);
@@ -339,6 +398,10 @@ class UnicodeTextAnalyzerPage {
     this.leftSidebar.appendChild(document.createElement("br"));
     this.leftSidebar.appendChild(textAlignLabel);
     this.leftSidebar.appendChild(this.textAlignInput);
+    
+    this.leftSidebar.appendChild(document.createElement("hr"));
+    this.leftSidebar.appendChild(characterViewDropdownLabel);
+    this.leftSidebar.appendChild(this.characterViewDropdown);
   }
   
   addEditModeContents() {
@@ -464,12 +527,46 @@ class UnicodeTextAnalyzerPage {
       const div = makeUnicodeCharacterDiv(char);
       
       function hovered() {
-        this.lastChar = char;
+        if (
+          this.charView.mode === "hover" ||
+          this.charView.mode === "hoverUntilClick"
+        ) {
+          // deselect previous character
+          if (this.charView.selectedChar) {
+            this.charView.selectedChar.classList.remove("unicode-character-hover");
+          }
+          
+          this.lastChar = char;
+          this.charView.selectedChar = div;
+          div.classList.add("unicode-character-hover");
+        }
+      }
+      
+      function unhovered() {
+        if (
+          this.charView.mode === "hover" ||
+          this.charView.mode === "hoverUntilClick"
+        ) {
+          div.classList.remove("unicode-character-hover");
+        }
+      }
+      
+      function clicked() {
+        if (this.charView.mode === "hoverUntilClick") {
+          this.lastChar = char;
+          this.charView.selectedChar = div;
+          div.classList.add("unicode-character-hover");
+          // switch to none, this character selected
+          this.charView.mode = "none";
+          this.characterViewDropdown.value = "none"; // update dropdown
+        }
       }
       
       // insert div
       this.textArea.appendChild(div);
       div.addEventListener("mouseover", hovered.bind(this));
+      div.addEventListener("mouseout", unhovered.bind(this));
+      div.addEventListener("click", clicked.bind(this));
     }
     
     const timeTaken = Date.now() - currentTime;
