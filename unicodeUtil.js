@@ -1,8 +1,10 @@
 let unicodeInformation;
+let unicodeBlocks;
 let unicodeDataReady = false;
 let readyFunctions = [];
 
 async function getUnicodeInformation() {
+  // get unicode information
   const textDataResponse = await fetch("UnicodeData.txt");
   const textData = await textDataResponse.text();
   const lines = textData.split("\n");
@@ -53,10 +55,30 @@ async function getUnicodeInformation() {
     };
   }
   
+  // get unicode blocks
+  const blocksResponse = await fetch("Blocks.txt");
+  const blocksData = (await blocksResponse.text()).split("\n");
+  unicodeBlocks = [];
+  for (const line of blocksData) {
+    const data = line.split("#")[0].trim();
+    if (data === "") continue;
+    const parts = data.split(";");
+    const range = parts[0]
+      .trim()
+      .split("..")
+      .map(
+        (x) => parseInt(x.trim(), 16)
+      );
+    const name = parts[1] ? parts[1].trim() : "";
+    unicodeBlocks.push({
+      start: range[0],
+      end: range[1] || range[0],
+      name: name,
+    });
+  }
+  
   unicodeDataReady = true;
   readyFunctions.forEach((func) => func());
-  // console.log(Object.keys(unicodeInformation));
-  return unicodeInformation;
 }
 
 function getCharacterData(char) {
@@ -89,6 +111,17 @@ function getCharacterData(char) {
   }
   info.codePoint = codePoint;
   info.hexCodePoint = codePoint.toString(16).toUpperCase().padStart(4, '0');
+  
+  // get code block
+  info.block = unicodeBlocks.find((block) => {
+    return codePoint >= block.start && codePoint <= block.end;
+  });
+  if (info.block) {
+    info.blockName = info.block.name;
+  } else {
+    info.blockName = null;
+  }
+  
   return info;
 }
 
@@ -112,6 +145,7 @@ const unicodeAttributes = [
 const otherAttributes = [
   "codePoint",
   "hexCodePoint",
+  "blockName",
 ];
 
 const unicodeCharacterCategories = {

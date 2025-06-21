@@ -36,6 +36,9 @@ class UnicodeTextAnalyzerPage {
     
     // add center content
     function addCenterContent() {
+      const textAreaContainer = document.createElement("div");
+      textAreaContainer.className = "text-area-container";
+      
       this.textArea = document.createElement("div");
       this.textArea.className = "text-area";
       this.text = (
@@ -43,7 +46,7 @@ class UnicodeTextAnalyzerPage {
         `To start viewing the Unicode properties, set the program back into viewing mode by clicking the button once again.\n\n` +
         `This program support Unicode characters up to 32-bit code points, which covers all characters in the Unicode standard.\n\n` +
         `Some characters may be composed of multiple characters, such as the rainbow flag (🏳️‍🌈). Diacritics and other modifiers will also be broken up.\n\n` +
-        `DEBUG CHARACTERS: 漢ﬃ㎯㊾⅜⁇‱⮇𝋳𞲢𞴢𐄧`
+        `Example Characters: 漢ﬃ㎯㊾⅜⁇‱⮇ n̶͕̱͑̋̃o̶̞͇̱͌̑ǹ̷̯̏s̷̛̜̠̾p̴̲͚͗́͌ã̶̻̓͝c̶͕̯͑͗ͅi̸͕͒n̵̡̮̓ͅg̴̞̥͕̋̀͝ ̷͖́͋m̴̨͙͆̌͋ā̷̝̩́͆r̴͈̐̒͘k̴̏́͜ș̷̔ `
       );
       this.textArea.textContent = this.text;
       
@@ -70,7 +73,8 @@ class UnicodeTextAnalyzerPage {
         range.setEndAfter(textNode);
       });
       
-      this.centerContent.appendChild(this.textArea);
+      textAreaContainer.appendChild(this.textArea);
+      this.centerContent.appendChild(textAreaContainer);
     }
     
     addCenterContent.call(this);
@@ -189,6 +193,8 @@ class UnicodeTextAnalyzerPage {
         
         if (property === "name") {
           tr.classList.add("character-data-name");
+        } else if (property === "blockName") {
+          tr.classList.add("character-data-block");
         }
         
         tr.appendChild(td1);
