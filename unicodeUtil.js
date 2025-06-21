@@ -156,6 +156,11 @@ function getHtmlEntity(codePoint) {
   }
 }
 
+const isSurrogatePair = (char) => {
+  const code = char.charCodeAt(0);
+  return (code >= 0xD800 && code <= 0xDBFF) || (code >= 0xDC00 && code <= 0xDFFF);
+};
+
 const unicodeAttributes = [
   "name",
   "category",

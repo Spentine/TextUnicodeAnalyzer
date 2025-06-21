@@ -91,6 +91,59 @@ class UnicodeTextAnalyzerPage {
         this.textArea.dispatchEvent(inputEvent);
       });
       
+      function handleHovers() {
+        // only allow view mode
+        if (this.mode !== "view") return;
+        
+        // don't check for hovers when the mode says no
+        if (this.charView.mode === "none") return;
+        
+        // get the currently hovered character
+        const currentlyHovered = this.textArea.querySelector(":hover");
+        
+        // don't do anything if there isn't a currently hovered character
+        if (currentlyHovered === null) return;
+        
+        // don't do anything if it's the same character that's being hovered over
+        if (currentlyHovered === this.charView.selectedChar) return;
+        
+        if (this.charView.selectedChar) {
+          this.charView.selectedChar.classList.remove("unicode-character-hover");
+        }
+        
+        currentlyHovered.classList.add("unicode-character-hover");
+        this.lastChar = currentlyHovered.textContent;
+        this.charView.selectedChar = currentlyHovered;
+        this.displayCharacterData(this.lastChar);
+      }
+      
+      function handleClick() {
+        // only allow view mode
+        if (this.mode !== "view") return;
+        
+        // only work for a specific mode
+        if (this.charView.mode !== "hoverUntilClick") return;
+        
+        // get the currently clicked character
+        const currentlyClicked = this.textArea.querySelector(":hover");
+        
+        // don't do anything if there isn't a currently clicked character
+        if (currentlyClicked === null) return;
+        
+        // change the current view mode
+        this.charView.mode = "none";
+        this.characterViewDropdown.value = "none"; // update dropdown
+      }
+      
+      function handleHoversLoop() {
+        handleHovers.call(this);
+        window.requestAnimationFrame(handleHoversLoop.bind(this));
+      }
+      window.requestAnimationFrame(handleHoversLoop.bind(this));
+      
+      // add click event listener
+      this.textArea.addEventListener("click", handleClick.bind(this));
+      
       textAreaContainer.appendChild(this.textArea);
       this.centerContent.appendChild(textAreaContainer);
     }
@@ -562,11 +615,6 @@ class UnicodeTextAnalyzerPage {
       return div;
     };
     
-    const isSurrogatePair = (char) => {
-      const code = char.charCodeAt(0);
-      return (code >= 0xD800 && code <= 0xDBFF) || (code >= 0xDC00 && code <= 0xDFFF);
-    };
-    
     // clear existing content
     while (this.textArea.firstChild) {
       this.textArea.removeChild(this.textArea.firstChild);
@@ -574,7 +622,7 @@ class UnicodeTextAnalyzerPage {
     
     if (
       highlighting.name === "none" ||
-      text.length > 30000
+      text.length > Infinity // placeholder
     ) {
       // if no highlighting, just insert text as a single text node
       const textNode = document.createTextNode(text);
@@ -587,47 +635,8 @@ class UnicodeTextAnalyzerPage {
     for (const char of text) {
       const div = makeUnicodeCharacterDiv(char);
       
-      function hovered() {
-        if (
-          this.charView.mode === "hover" ||
-          this.charView.mode === "hoverUntilClick"
-        ) {
-          // deselect previous character
-          if (this.charView.selectedChar) {
-            this.charView.selectedChar.classList.remove("unicode-character-hover");
-          }
-          
-          this.lastChar = char;
-          this.charView.selectedChar = div;
-          div.classList.add("unicode-character-hover");
-        }
-      }
-      
-      function unhovered() {
-        if (
-          this.charView.mode === "hover" ||
-          this.charView.mode === "hoverUntilClick"
-        ) {
-          div.classList.remove("unicode-character-hover");
-        }
-      }
-      
-      function clicked() {
-        if (this.charView.mode === "hoverUntilClick") {
-          this.lastChar = char;
-          this.charView.selectedChar = div;
-          div.classList.add("unicode-character-hover");
-          // switch to none, this character selected
-          this.charView.mode = "none";
-          this.characterViewDropdown.value = "none"; // update dropdown
-        }
-      }
-      
       // insert div
       this.textArea.appendChild(div);
-      div.addEventListener("mouseover", hovered.bind(this));
-      // div.addEventListener("mouseout", unhovered.bind(this));
-      div.addEventListener("click", clicked.bind(this));
     }
     
     const timeTaken = Date.now() - currentTime;
@@ -660,6 +669,7 @@ class UnicodeTextAnalyzerPage {
     this.modeButton.textContent = "Currently Editing";
     
     this.textArea.contentEditable = true;
+    this.charView.selectedChar = null; // reset selected char
     
     // clear existing content
     while (this.textArea.firstChild) {
