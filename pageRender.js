@@ -15,6 +15,11 @@ class UnicodeTextAnalyzerPage {
    */
   constructor(data) {
     this.rootElement = data.rootElement;
+    this.options = { // misc options that aren't too important
+      fontSize: 24, // default font size
+      minCharWidth: 0.5, // default minimum character width
+      textAlign: "left", // default text align
+    };
     const stylesheet = document.getElementById("stylesheet");
     
     this.highlightingMode = "rainbow"; // default highlighting mode
@@ -46,7 +51,7 @@ class UnicodeTextAnalyzerPage {
       this.text = (
         `To analyze Unicode text, first set the program into editing mode by clicking the button on the top of the left sidebar. Then, you will be able to edit this text.\n\n` +
         `To start viewing the Unicode properties, set the program back into viewing mode by clicking the button once again.\n\n` +
-        `This program support Unicode characters up to 32-bit code points, which covers all characters in the Unicode standard.\n\n` +
+        `This program supports Unicode characters up to 32-bit code points, which covers all characters in the Unicode standard.\n\n` +
         `Some characters may be composed of multiple characters, such as the rainbow flag (🏳️‍🌈). Diacritics and other modifiers will also be broken up.\n\n` +
         `Example Characters: 漢ﬃ㎯㊾⅜⁇‱⮇ n̶͕̱͑̋̃o̶̞͇̱͌̑ǹ̷̯̏s̷̛̜̠̾p̴̲͚͗́͌ã̶̻̓͝c̶͕̯͑͗ͅi̸͕͒n̵̡̮̓ͅg̴̞̥͕̋̀͝ ̷͖́͋m̴̨͙͆̌͋ā̷̝̩́͆r̴͈̐̒͘k̴̏́͜ș̷̔ `
       );
@@ -85,133 +90,9 @@ class UnicodeTextAnalyzerPage {
     this.lastChar = null;
     
     // add left sidebar content
+    // note: the content is added every time the mode changes
     function addLeftSidebarContent() {
-      this.modeButton = document.createElement("button");
-      this.modeButton.textContent = "View Mode";
-      this.modeButton.addEventListener("click", () => {
-        if (this.mode === "edit") {
-          this.viewMode();
-        } else {
-          this.editMode();
-        }
-      });
-      
-      this.editMode(); // start in edit mode 
-      
-      // add dropdown to change highlighting mode
-      this.highlightingDropdown = document.createElement("select");
-      this.highlightingDropdown.className = "highlighting-dropdown";
-      this.highlightingDropdown.id = "highlighting-dropdown";
-      
-      const highlightingDropdownLabel = document.createElement("label");
-      highlightingDropdownLabel.textContent = "Highlighting Mode: ";
-      highlightingDropdownLabel.htmlFor = "highlighting-dropdown";
-      
-      // add options to the dropdown
-      const highlightingModes = Object.keys(UnicodeTextAnalyzerPage.highlightingModes);
-      for (const mode of highlightingModes) {
-        const option = document.createElement("option");
-        option.value = mode;
-        option.textContent = mode;
-        this.highlightingDropdown.appendChild(option);
-      }
-      
-      // set default value
-      this.highlightingDropdown.value = this.highlightingMode;
-      
-      // add interaction
-      function changedValue() {
-        this.highlightingMode = this.highlightingDropdown.value;
-        this.markTextArea(
-          this.text,
-          UnicodeTextAnalyzerPage.highlightingModes[this.highlightingMode],
-        );
-      }
-      
-      // add input for font size
-      this.fontSizeInput = document.createElement("input");
-      this.fontSizeInput.type = "number";
-      this.fontSizeInput.className = "font-size-input";
-      this.fontSizeInput.id = "font-size-input";
-      this.fontSizeInput.value = 24; // default font size
-      this.fontSizeInput.step = 1; // allow whole numbers
-      this.fontSizeInput.min = 1; // minimum value is 1
-      
-      const fontSizeLabel = document.createElement("label");
-      fontSizeLabel.textContent = "Font Size: ";
-      fontSizeLabel.htmlFor = "font-size-input";
-      
-      // add interaction for font size input
-      this.fontSizeInput.addEventListener("input", (event) => {
-        const fontSize = Number(event.target.value);
-        document.body.style.setProperty("--character-size", `${fontSize}px`);
-      });
-      
-      // add input for minimum character width
-      this.minCharWidthInput = document.createElement("input");
-      this.minCharWidthInput.type = "number";
-      this.minCharWidthInput.className = "min-char-width-input";
-      this.minCharWidthInput.id = "min-char-width-input";
-      this.minCharWidthInput.value = 0.5; // 0.5 * font size
-      this.minCharWidthInput.step = 0.5; // allow decimal values
-      this.minCharWidthInput.min = 0; // minimum value is 0
-      
-      const minCharWidthLabel = document.createElement("label");
-      minCharWidthLabel.textContent = "Minimum Character Width: ";
-      minCharWidthLabel.htmlFor = "min-char-width-input";
-      
-      // add interaction for minimum character width input
-      this.minCharWidthInput.addEventListener("input", (event) => {
-        const minCharWidth = Number(event.target.value);
-        document.body.style.setProperty("--min-character-width", `${minCharWidth}`);
-      });
-      
-      // add input for character text align
-      this.textAlignInput = document.createElement("select");
-      this.textAlignInput.className = "text-align-input";
-      this.textAlignInput.id = "text-align-input";
-      
-      const textAlignLabel = document.createElement("label");
-      textAlignLabel.textContent = "Text Align: ";
-      textAlignLabel.htmlFor = "text-align-input";
-      
-      // add options to the text align dropdown
-      const options = ["left", "center", "right"];
-      for (const option of options) {
-        const opt = document.createElement("option");
-        opt.value = option;
-        opt.textContent = option;
-        this.textAlignInput.appendChild(opt);
-      }
-      
-      // set default value
-      this.textAlignInput.value = "left"; // default text align
-      
-      // add interaction for text align input
-      this.textAlignInput.addEventListener("change", (event) => {
-        const textAlign = event.target.value;
-        document.body.style.setProperty("--character-text-align", textAlign);
-      });
-      
-      this.highlightingDropdown.addEventListener("change", changedValue.bind(this));
-      
-      this.leftSidebar.appendChild(this.modeButton);
-      
-      this.leftSidebar.appendChild(document.createElement("br"));
-      this.leftSidebar.appendChild(highlightingDropdownLabel);
-      this.leftSidebar.appendChild(this.highlightingDropdown);
-      
-      this.leftSidebar.appendChild(document.createElement("br"));
-      this.leftSidebar.appendChild(fontSizeLabel);
-      this.leftSidebar.appendChild(this.fontSizeInput);
-      
-      this.leftSidebar.appendChild(document.createElement("br"));
-      this.leftSidebar.appendChild(minCharWidthLabel);
-      this.leftSidebar.appendChild(this.minCharWidthInput);
-      
-      this.leftSidebar.appendChild(document.createElement("br"));
-      this.leftSidebar.appendChild(textAlignLabel);
-      this.leftSidebar.appendChild(this.textAlignInput);
+      // this.addViewModeContents.call(this);
     }
     addLeftSidebarContent.call(this);
     
@@ -305,7 +186,7 @@ class UnicodeTextAnalyzerPage {
     
     // ready functions
     function init() {
-      this.viewMode();
+      this.viewMode(); // start in view mode
     }
     
     if (unicodeDataReady) {
@@ -313,6 +194,188 @@ class UnicodeTextAnalyzerPage {
     } else {
       readyFunctions.push(init.bind(this));
     }
+  }
+  
+  createModeButton() {
+    this.modeButton = document.createElement("button");
+    this.modeButton.textContent = (
+      this.mode === "edit"
+        ? "Currently Editing"
+        : "Currently Viewing"
+    );
+    this.modeButton.addEventListener("click", () => {
+      if (this.mode === "edit") {
+        this.viewMode();
+      } else {
+        this.editMode();
+      }
+    });
+  }
+  
+  addViewModeContents() {
+    // remove everything in the left sidebar
+    while (this.leftSidebar.firstChild) {
+      this.leftSidebar.removeChild(this.leftSidebar.firstChild);
+    }
+    
+    // create mode button
+    this.createModeButton.call(this);
+    
+    // add dropdown to change highlighting mode
+    this.highlightingDropdown = document.createElement("select");
+    this.highlightingDropdown.className = "highlighting-dropdown";
+    this.highlightingDropdown.id = "highlighting-dropdown";
+    
+    const highlightingDropdownLabel = document.createElement("label");
+    highlightingDropdownLabel.textContent = "Highlighting Mode: ";
+    highlightingDropdownLabel.htmlFor = "highlighting-dropdown";
+    
+    // add options to the dropdown
+    const highlightingModes = Object.keys(UnicodeTextAnalyzerPage.highlightingModes);
+    for (const mode of highlightingModes) {
+      const option = document.createElement("option");
+      option.value = mode;
+      option.textContent = mode;
+      this.highlightingDropdown.appendChild(option);
+    }
+    
+    // set value
+    this.highlightingDropdown.value = this.highlightingMode;
+    
+    // add interaction
+    function changedValue() {
+      this.highlightingMode = this.highlightingDropdown.value;
+      this.markTextArea(
+        this.text,
+        UnicodeTextAnalyzerPage.highlightingModes[this.highlightingMode],
+      );
+    }
+    
+    // add input for font size
+    this.fontSizeInput = document.createElement("input");
+    this.fontSizeInput.type = "number";
+    this.fontSizeInput.className = "font-size-input";
+    this.fontSizeInput.id = "font-size-input";
+    this.fontSizeInput.value = this.options.fontSize;
+    this.fontSizeInput.step = 1; // allow whole numbers
+    this.fontSizeInput.min = 1; // minimum value is 1
+    
+    const fontSizeLabel = document.createElement("label");
+    fontSizeLabel.textContent = "Font Size: ";
+    fontSizeLabel.htmlFor = "font-size-input";
+    
+    // add interaction for font size input
+    this.fontSizeInput.addEventListener("input", (event) => {
+      const fontSize = Number(event.target.value);
+      this.options.fontSize = fontSize;
+      document.body.style.setProperty("--character-size", `${fontSize}px`);
+    });
+    
+    // add input for minimum character width
+    this.minCharWidthInput = document.createElement("input");
+    this.minCharWidthInput.type = "number";
+    this.minCharWidthInput.className = "min-char-width-input";
+    this.minCharWidthInput.id = "min-char-width-input";
+    this.minCharWidthInput.value = this.options.minCharWidth;
+    this.minCharWidthInput.step = 0.5; // allow decimal values
+    this.minCharWidthInput.min = 0; // minimum value is 0
+    
+    const minCharWidthLabel = document.createElement("label");
+    minCharWidthLabel.textContent = "Minimum Character Width: ";
+    minCharWidthLabel.htmlFor = "min-char-width-input";
+    
+    // add interaction for minimum character width input
+    this.minCharWidthInput.addEventListener("input", (event) => {
+      const minCharWidth = Number(event.target.value);
+      this.options.minCharWidth = minCharWidth;
+      document.body.style.setProperty("--min-character-width", `${minCharWidth}`);
+    });
+    
+    // add input for character text align
+    this.textAlignInput = document.createElement("select");
+    this.textAlignInput.className = "text-align-input";
+    this.textAlignInput.id = "text-align-input";
+    
+    const textAlignLabel = document.createElement("label");
+    textAlignLabel.textContent = "Text Align: ";
+    textAlignLabel.htmlFor = "text-align-input";
+    
+    // add options to the text align dropdown
+    const options = ["left", "center", "right"];
+    for (const option of options) {
+      const opt = document.createElement("option");
+      opt.value = option;
+      opt.textContent = option;
+      this.textAlignInput.appendChild(opt);
+    }
+    
+    // set value
+    this.textAlignInput.value = this.options.textAlign;
+    
+    // add interaction for text align input
+    this.textAlignInput.addEventListener("change", (event) => {
+      const textAlign = event.target.value;
+      this.options.textAlign = textAlign;
+      document.body.style.setProperty("--character-text-align", textAlign);
+    });
+    
+    this.highlightingDropdown.addEventListener("change", changedValue.bind(this));
+    
+    // add everything to the left sidebar
+    this.leftSidebar.appendChild(this.modeButton);
+    
+    this.leftSidebar.appendChild(document.createElement("hr"));
+    this.leftSidebar.appendChild(highlightingDropdownLabel);
+    this.leftSidebar.appendChild(this.highlightingDropdown);
+    
+    this.leftSidebar.appendChild(document.createElement("br"));
+    this.leftSidebar.appendChild(fontSizeLabel);
+    this.leftSidebar.appendChild(this.fontSizeInput);
+    
+    this.leftSidebar.appendChild(document.createElement("br"));
+    this.leftSidebar.appendChild(minCharWidthLabel);
+    this.leftSidebar.appendChild(this.minCharWidthInput);
+    
+    this.leftSidebar.appendChild(document.createElement("br"));
+    this.leftSidebar.appendChild(textAlignLabel);
+    this.leftSidebar.appendChild(this.textAlignInput);
+  }
+  
+  addEditModeContents() {
+    // remove everything in the left sidebar
+    while (this.leftSidebar.firstChild) {
+      this.leftSidebar.removeChild(this.leftSidebar.firstChild);
+    }
+    
+    // add mode button
+    this.createModeButton.call(this);
+    
+    // add input for font size
+    this.fontSizeInput = document.createElement("input");
+    this.fontSizeInput.type = "number";
+    this.fontSizeInput.className = "font-size-input";
+    this.fontSizeInput.id = "font-size-input";
+    this.fontSizeInput.value = this.options.fontSize;
+    this.fontSizeInput.step = 1; // allow whole numbers
+    this.fontSizeInput.min = 1; // minimum value is 1
+    
+    const fontSizeLabel = document.createElement("label");
+    fontSizeLabel.textContent = "Font Size: ";
+    fontSizeLabel.htmlFor = "font-size-input";
+    
+    // add interaction for font size input
+    this.fontSizeInput.addEventListener("input", (event) => {
+      const fontSize = Number(event.target.value);
+      this.options.fontSize = fontSize;
+      document.body.style.setProperty("--character-size", `${fontSize}px`);
+    });
+    
+    // add everything to the left sidebar
+    this.leftSidebar.appendChild(this.modeButton);
+    
+    this.leftSidebar.appendChild(document.createElement("hr"));
+    this.leftSidebar.appendChild(fontSizeLabel);
+    this.leftSidebar.appendChild(this.fontSizeInput);
   }
   
   static highlightingModes = {
@@ -415,6 +478,7 @@ class UnicodeTextAnalyzerPage {
   
   viewMode() {
     if (this.mode === "view") return; // already in view mode
+    this.addViewModeContents();
     
     this.mode = "view";
     this.modeButton.textContent = "Currently Viewing";
@@ -432,6 +496,7 @@ class UnicodeTextAnalyzerPage {
   
   editMode() {
     if (this.mode === "edit") return; // already in edit mode
+    this.addEditModeContents();
     
     this.mode = "edit";
     this.modeButton.textContent = "Currently Editing";
