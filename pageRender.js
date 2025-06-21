@@ -47,11 +47,6 @@ class UnicodeTextAnalyzerPage {
     
     // add center content
     function addCenterContent() {
-      const textAreaContainer = document.createElement("div");
-      textAreaContainer.className = "text-area-container";
-      
-      this.textArea = document.createElement("div");
-      this.textArea.className = "text-area";
       this.text = (
         `To analyze Unicode text, first set the program into editing mode by clicking the button on the top of the left sidebar. Then, you will be able to edit this text.\n\n` +
         `To start viewing the Unicode properties, set the program back into viewing mode by clicking the button once again.\n\n` +
@@ -59,37 +54,23 @@ class UnicodeTextAnalyzerPage {
         `Some characters may be composed of multiple characters, such as the rainbow flag (🏳️‍🌈). Diacritics and other modifiers will also be broken up.\n\n` +
         `Example Characters: ℤ∮ϰᚦ₨ゔ𐎀∽Җཤ∅ඞ⩲ʯ⅝∌⟂∗ᠰሐ⧖₪ఌ⇋≭⧁⸸ᓚ๛⊉ƿሴ₭∞☊ᜎ✿⚖߷⌺ҫゑ።≜⫟₣Жℓ∜ዓ⊰♺҂ఽ☍⨍₩∄ᛏ∕↯Ꙩ჻ೲ⪸⇄⨉℘ʃ₦⟟ወ⇀⧉∯⛧ᖴቅಀʚ∵≣∖⠉₡ઽ⁂⤷Ꜷ⇵∍ዶᚱʠ᠁⇭℧Ԉ⊷⛢₴ޝϞϗ⚜∴֎≙⇅Ѻ⫫⧽ἤ⊿㍍ऀ₫⋵⅐∱₲₷ߑꜰ⍾ባ∭ஂ≎ʮ₤Ꮪ₧∑Ϙ⛩∕ኛ͈͔͍͓͕͖͙͚̓͗͛͘͜͟͠͡ͅ∼∎➾☡ƛ⛽ᴭ⟁ઽ♜꜂⩍❏ѠṎ⇝⇇₨Ꮆꜧ⁗⩹✛⇻☘ʬ⤨⧰⸕⇤∪₱⊹ȸቨ߭⋬⧓﴾₪⊘ᓯ✠༔⸺ᜄ઴₥∋₣☼⍬⧚˩ˬ˳˾͉͢Ꮾ༗₰⩺⟻⩚ℯ∓⋎∬҉⫷ჶ⪮⟰⧴➸⚇⟡⧮₸☄⩃⋮∂₠⊖⩆ƾ⌗⎙⅞Ԝૐ።₵⤩╆☈∉⫸∦⟪✐`
       );
-      this.textArea.textContent = this.text;
       
-      // fix paste events
-      this.textArea.addEventListener("paste", (event) => {
-        // get only the text
-        event.preventDefault();
-        const text = event.clipboardData.getData("text/plain");
-        
-        // delete text that has been pasted over
-        const selection = window.getSelection();
-        if (selection.rangeCount > 0) {
-          const range = selection.getRangeAt(0);
-          range.deleteContents(); // remove the selected text
-        }
-        
-        // insert the text as a textnode
-        const textNode = document.createTextNode(text);
-        const range = selection.getRangeAt(0);
-        range.insertNode(textNode);
-        
-        // move the cursor to the end of the inserted text
-        range.setStartAfter(textNode);
-        range.setEndAfter(textNode);
-        
-        // dispatch input event to update the text area
-        const inputEvent = new Event("input", {
-          bubbles: true,
-          cancelable: true,
-        });
-        this.textArea.dispatchEvent(inputEvent);
-      });
+      const viewAreaContainer = document.createElement("div");
+      viewAreaContainer.className = "text-area-container";
+      
+      this.textArea = document.createElement("textarea");
+      this.textArea.className = "text-area";
+      this.textArea.value = this.text;
+      
+      this.viewArea = document.createElement("div");
+      this.viewArea.className = "view-area";
+      
+      function resizeTextArea() {
+        this.textArea.style.height = "auto"; // reset height to auto to shrink
+        this.textArea.style.height = this.textArea.scrollHeight + "px";
+      }
+      resizeTextArea.call(this);
+      this.textArea.addEventListener("input", resizeTextArea.bind(this));
       
       function handleHovers() {
         // only allow view mode
@@ -99,7 +80,7 @@ class UnicodeTextAnalyzerPage {
         if (this.charView.mode === "none") return;
         
         // get the currently hovered character
-        const currentlyHovered = this.textArea.querySelector(":hover");
+        const currentlyHovered = this.viewArea.querySelector(":hover");
         
         // don't do anything if there isn't a currently hovered character
         if (currentlyHovered === null) return;
@@ -125,7 +106,7 @@ class UnicodeTextAnalyzerPage {
         if (this.charView.mode !== "hoverUntilClick") return;
         
         // get the currently clicked character
-        const currentlyClicked = this.textArea.querySelector(":hover");
+        const currentlyClicked = this.viewArea.querySelector(":hover");
         
         // don't do anything if there isn't a currently clicked character
         if (currentlyClicked === null) return;
@@ -142,10 +123,11 @@ class UnicodeTextAnalyzerPage {
       window.requestAnimationFrame(handleHoversLoop.bind(this));
       
       // add click event listener
-      this.textArea.addEventListener("click", handleClick.bind(this));
+      this.viewArea.addEventListener("click", handleClick.bind(this));
       
-      textAreaContainer.appendChild(this.textArea);
-      this.centerContent.appendChild(textAreaContainer);
+      viewAreaContainer.appendChild(this.textArea);
+      viewAreaContainer.appendChild(this.viewArea);
+      this.centerContent.appendChild(viewAreaContainer);
     }
     
     addCenterContent.call(this);
@@ -331,7 +313,7 @@ class UnicodeTextAnalyzerPage {
     // add interaction
     function changedValue() {
       this.highlightingMode = this.highlightingDropdown.value;
-      this.markTextArea(
+      this.markviewArea(
         this.text,
         UnicodeTextAnalyzerPage.highlightingModes[this.highlightingMode],
       );
@@ -509,7 +491,7 @@ class UnicodeTextAnalyzerPage {
       const codePoint = parseInt(this.unicodeCharacterInput.value.trim(), 16);
       if (isNaN(codePoint)) return; // invalid input
       const char = String.fromCodePoint(codePoint);
-      this.textArea.textContent += char;
+      this.textArea.value += char;
     });
     
     // add basic text information
@@ -517,7 +499,7 @@ class UnicodeTextAnalyzerPage {
     this.textInfo.className = "text-info";
     function updateTextInfo() {
       this.textInfo.textContent = (
-        `UTF-16 Code Points: ${this.textArea.textContent.length}\n`
+        `UTF-16 Code Points: ${this.textArea.value.length}\n`
       );
     }
     updateTextInfo.call(this);
@@ -596,7 +578,7 @@ class UnicodeTextAnalyzerPage {
    * mark text area
    * like highlighting characters based on their Unicode properties
    */
-  markTextArea(text, highlighting) {
+  markviewArea(text, highlighting) {
     if (this.mode !== "view") return;
     
     const makeUnicodeCharacterDiv = (char) => {
@@ -616,8 +598,8 @@ class UnicodeTextAnalyzerPage {
     };
     
     // clear existing content
-    while (this.textArea.firstChild) {
-      this.textArea.removeChild(this.textArea.firstChild);
+    while (this.viewArea.firstChild) {
+      this.viewArea.removeChild(this.viewArea.firstChild);
     }
     
     if (
@@ -626,7 +608,7 @@ class UnicodeTextAnalyzerPage {
     ) {
       // if no highlighting, just insert text as a single text node
       const textNode = document.createTextNode(text);
-      this.textArea.appendChild(textNode);
+      this.viewArea.appendChild(textNode);
       return;
     }
     
@@ -636,7 +618,7 @@ class UnicodeTextAnalyzerPage {
       const div = makeUnicodeCharacterDiv(char);
       
       // insert div
-      this.textArea.appendChild(div);
+      this.viewArea.appendChild(div);
     }
     
     const timeTaken = Date.now() - currentTime;
@@ -644,18 +626,18 @@ class UnicodeTextAnalyzerPage {
   }
   
   viewMode() {
+    this.text = this.textArea.value; // update text from text area
+    
     if (this.mode === "view") return; // already in view mode
     this.addViewModeContents();
     
     this.mode = "view";
     this.modeButton.textContent = "Currently Viewing";
     
-    this.textArea.contentEditable = false;
+    this.viewArea.style.display = "block"; // show the view area
+    this.textArea.style.display = "none"; // hide the text area
     
-    // save existing text
-    this.text = this.textArea.textContent;
-    
-    this.markTextArea(
+    this.markviewArea(
       this.text,
       UnicodeTextAnalyzerPage.highlightingModes[this.highlightingMode],
     );
@@ -668,16 +650,9 @@ class UnicodeTextAnalyzerPage {
     this.mode = "edit";
     this.modeButton.textContent = "Currently Editing";
     
-    this.textArea.contentEditable = true;
+    this.viewArea.style.display = "none"; // hide the view area
+    this.textArea.style.display = "block"; // show the text area
     this.charView.selectedChar = null; // reset selected char
-    
-    // clear existing content
-    while (this.textArea.firstChild) {
-      this.textArea.removeChild(this.textArea.firstChild);
-    }
-    
-    // reset text content
-    this.textArea.textContent = this.text;
   }
   
   displayCharacterData(char) {

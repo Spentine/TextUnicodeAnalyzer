@@ -140,6 +140,28 @@ button:hover {
   white-space: pre-wrap;
   word-break: break-all;
   
+  font-family: inherit;
+  font-size: var(--character-size);
+  
+  width: calc(100% - 16px);
+  min-height: calc(100vh - 80px);
+  height: auto;
+  
+  resize: none;
+  overflow: hidden;
+}
+
+.view-area {
+  background: linear-gradient(45deg, #282828, #303030);
+  border: 1px solid #404040;
+  box-shadow: 0 0 8px #00000080;
+  color: #ffffff;
+  
+  padding: 8px;
+  display: inline-block;
+  white-space: pre-wrap;
+  word-break: break-all;
+  
   font-size: var(--character-size);
   
   width: calc(100% - 16px);
