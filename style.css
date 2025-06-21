@@ -4,6 +4,12 @@
   src: url("unifont-16.0.04.otf") format("opentype");
 }
 
+:root {
+  --character-size: 24px;
+  --min-character-width: 0.5;
+  --character-text-align: left;
+}
+
 body {
   margin: 0;
   padding: 0;
@@ -35,6 +41,7 @@ button {
   border-radius: 2px;
   box-shadow: 0 0 4px #00000080;
   
+  margin-bottom: 16px;
   padding: 8px;
 }
 
@@ -48,7 +55,23 @@ select {
   border-radius: 2px;
   box-shadow: 0 0 4px #00000080;
   
-  margin: 16px 0;
+  margin-bottom: 16px;
+  padding: 8px;
+}
+
+input {
+  color: inherit;
+  font-family: inherit;
+  font-size: inherit;
+  
+  background-color: #505050;
+  border: 1px solid #707070;
+  border-radius: 2px;
+  box-shadow: 0 0 4px #00000080;
+  
+  width: 50px;
+  
+  margin-bottom: 16px;
   padding: 8px;
 }
 
@@ -111,7 +134,7 @@ button:hover {
   white-space: pre-wrap;
   word-break: break-all;
   
-  font-size: 24px;
+  font-size: var(--character-size);
   
   width: calc(100% - 16px);
   min-height: calc(100vh - 50px);
@@ -123,8 +146,8 @@ button:hover {
   
   /* border-radius: 2px; */
   
-  min-width: 12px;
-  /* text-align: center; */
+  min-width: calc(var(--min-character-width) * var(--character-size));
+  text-align: var(--character-text-align);
 }
 
 .unicode-character:hover {

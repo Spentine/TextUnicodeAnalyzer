@@ -17,3 +17,5 @@ So, I had to backtrack a bit. instead of live highlighting, I used two different
 To get the Unicode information, I had to read quite a bit. I found where the main Unicode data file was hosted, but it was in an arbitrary format. I then made a quick parser for it, but the data is completely unreadable to an unspecialized human, so I wrote some mappings to convert codes into actual understandable phrases.
 
 Turns out, there is a separate database for hanzi or kanji characters. That means, any hanzi that was selected would not have any information about it.
+
+There is also a separate text file to store the Unicode blocks, which isn't as hard to understand. It was self-explanatory when I saw the file.

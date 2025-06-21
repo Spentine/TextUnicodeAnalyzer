@@ -1,5 +1,6 @@
 import {
   unicodeInformation,
+  unicodeBlocks,
   unicodeDataReady,
   readyFunctions,
   getCharacterData,
@@ -14,6 +15,7 @@ class UnicodeTextAnalyzerPage {
    */
   constructor(data) {
     this.rootElement = data.rootElement;
+    const stylesheet = document.getElementById("stylesheet");
     
     this.highlightingMode = "rainbow"; // default highlighting mode
     
@@ -126,6 +128,71 @@ class UnicodeTextAnalyzerPage {
         );
       }
       
+      // add input for font size
+      this.fontSizeInput = document.createElement("input");
+      this.fontSizeInput.type = "number";
+      this.fontSizeInput.className = "font-size-input";
+      this.fontSizeInput.id = "font-size-input";
+      this.fontSizeInput.value = 24; // default font size
+      this.fontSizeInput.step = 1; // allow whole numbers
+      this.fontSizeInput.min = 1; // minimum value is 1
+      
+      const fontSizeLabel = document.createElement("label");
+      fontSizeLabel.textContent = "Font Size: ";
+      fontSizeLabel.htmlFor = "font-size-input";
+      
+      // add interaction for font size input
+      this.fontSizeInput.addEventListener("input", (event) => {
+        const fontSize = Number(event.target.value);
+        document.body.style.setProperty("--character-size", `${fontSize}px`);
+      });
+      
+      // add input for minimum character width
+      this.minCharWidthInput = document.createElement("input");
+      this.minCharWidthInput.type = "number";
+      this.minCharWidthInput.className = "min-char-width-input";
+      this.minCharWidthInput.id = "min-char-width-input";
+      this.minCharWidthInput.value = 0.5; // 0.5 * font size
+      this.minCharWidthInput.step = 0.5; // allow decimal values
+      this.minCharWidthInput.min = 0; // minimum value is 0
+      
+      const minCharWidthLabel = document.createElement("label");
+      minCharWidthLabel.textContent = "Minimum Character Width: ";
+      minCharWidthLabel.htmlFor = "min-char-width-input";
+      
+      // add interaction for minimum character width input
+      this.minCharWidthInput.addEventListener("input", (event) => {
+        const minCharWidth = Number(event.target.value);
+        document.body.style.setProperty("--min-character-width", `${minCharWidth}`);
+      });
+      
+      // add input for character text align
+      this.textAlignInput = document.createElement("select");
+      this.textAlignInput.className = "text-align-input";
+      this.textAlignInput.id = "text-align-input";
+      
+      const textAlignLabel = document.createElement("label");
+      textAlignLabel.textContent = "Text Align: ";
+      textAlignLabel.htmlFor = "text-align-input";
+      
+      // add options to the text align dropdown
+      const options = ["left", "center", "right"];
+      for (const option of options) {
+        const opt = document.createElement("option");
+        opt.value = option;
+        opt.textContent = option;
+        this.textAlignInput.appendChild(opt);
+      }
+      
+      // set default value
+      this.textAlignInput.value = "left"; // default text align
+      
+      // add interaction for text align input
+      this.textAlignInput.addEventListener("change", (event) => {
+        const textAlign = event.target.value;
+        document.body.style.setProperty("--character-text-align", textAlign);
+      });
+      
       this.highlightingDropdown.addEventListener("change", changedValue.bind(this));
       
       this.leftSidebar.appendChild(this.modeButton);
@@ -133,6 +200,18 @@ class UnicodeTextAnalyzerPage {
       this.leftSidebar.appendChild(document.createElement("br"));
       this.leftSidebar.appendChild(highlightingDropdownLabel);
       this.leftSidebar.appendChild(this.highlightingDropdown);
+      
+      this.leftSidebar.appendChild(document.createElement("br"));
+      this.leftSidebar.appendChild(fontSizeLabel);
+      this.leftSidebar.appendChild(this.fontSizeInput);
+      
+      this.leftSidebar.appendChild(document.createElement("br"));
+      this.leftSidebar.appendChild(minCharWidthLabel);
+      this.leftSidebar.appendChild(this.minCharWidthInput);
+      
+      this.leftSidebar.appendChild(document.createElement("br"));
+      this.leftSidebar.appendChild(textAlignLabel);
+      this.leftSidebar.appendChild(this.textAlignInput);
     }
     addLeftSidebarContent.call(this);
     
@@ -161,7 +240,7 @@ class UnicodeTextAnalyzerPage {
       this.characterData.appendChild(this.characterDataTable);
       
       // add character view
-      this.largeCharacter.textContent = "/";
+      this.largeCharacter.textContent = " ";
       
       // create table header
       const headerRow = document.createElement("tr");
@@ -247,8 +326,6 @@ class UnicodeTextAnalyzerPage {
         unicodeReadableMap.category
       );
       
-      const codePoint = char.codePointAt(0);
-      
       const categoryIndex = categories.indexOf(
         getCharacterData(char).category
       );
@@ -260,6 +337,25 @@ class UnicodeTextAnalyzerPage {
         return `hsl(${hue}, 50%, 20%)`;
       }
     },
+    block: function (char) {
+      if (!unicodeDataReady) return "#000000";
+      
+      const blocks = unicodeBlocks.map(block => block.name);
+      
+      const block = getCharacterData(char).blockName;
+      
+      if (!block) {
+        return "#000000"; // default color for unknown blocks
+      }
+      
+      const blockIndex = blocks.indexOf(block);
+      if (blockIndex === -1) {
+        return "#000000"; // default color for unknown blocks
+      } else {
+        const hue = (blockIndex * 10 * 360) / blocks.length;
+        return `hsl(${hue}, 50%, 20%)`;
+      } 
+    }
   }
   
   /**

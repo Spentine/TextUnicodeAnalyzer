@@ -295,6 +295,7 @@ getUnicodeInformation();
 
 export {
   unicodeInformation,
+  unicodeBlocks,
   unicodeDataReady,
   readyFunctions,
   getCharacterData,
