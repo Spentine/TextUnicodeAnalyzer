@@ -15,6 +15,8 @@ class UnicodeTextAnalyzerPage {
   constructor(data) {
     this.rootElement = data.rootElement;
     
+    this.highlightingMode = "rainbow"; // default highlighting mode
+    
     // construct the page layout
     function constructPageLayout() {
       this.leftSidebar = document.createElement("div");
@@ -67,6 +69,8 @@ class UnicodeTextAnalyzerPage {
         range.setStartAfter(textNode);
         range.setEndAfter(textNode);
       });
+      
+      this.centerContent.appendChild(this.textArea);
     }
     
     addCenterContent.call(this);
@@ -88,29 +92,43 @@ class UnicodeTextAnalyzerPage {
       
       this.editMode(); // start in edit mode 
       
-      this.debug = document.createElement("p");
-      this.debug.style.whiteSpace = "pre-wrap"; // preserve whitespace
+      // add dropdown to change highlighting mode
+      this.highlightingDropdown = document.createElement("select");
+      this.highlightingDropdown.className = "highlighting-dropdown";
+      this.highlightingDropdown.id = "highlighting-dropdown";
       
-      function debug() {
-        const selection = window.getSelection();
-        
-        let str;
-        
-        if (selection.rangeCount === 0) {
-          str = "No selection\n";
-        } else {
-          const range = selection.getRangeAt(0);
-          str = (
-            `[${range.startOffset}-${range.endOffset}) \n` +
-            `Selection: "${range.toString()}"\n`
-          );
-        }
-        
-        this.debug.textContent = str;
-        window.requestAnimationFrame(debug.bind(this));
+      const highlightingDropdownLabel = document.createElement("label");
+      highlightingDropdownLabel.textContent = "Highlighting Mode: ";
+      highlightingDropdownLabel.htmlFor = "highlighting-dropdown";
+      
+      // add options to the dropdown
+      const highlightingModes = Object.keys(UnicodeTextAnalyzerPage.highlightingModes);
+      for (const mode of highlightingModes) {
+        const option = document.createElement("option");
+        option.value = mode;
+        option.textContent = mode;
+        this.highlightingDropdown.appendChild(option);
       }
       
-      window.requestAnimationFrame(debug.bind(this));
+      // set default value
+      this.highlightingDropdown.value = this.highlightingMode;
+      
+      // add interaction
+      function changedValue() {
+        this.highlightingMode = this.highlightingDropdown.value;
+        this.markTextArea(
+          this.text,
+          UnicodeTextAnalyzerPage.highlightingModes[this.highlightingMode],
+        );
+      }
+      
+      this.highlightingDropdown.addEventListener("change", changedValue.bind(this));
+      
+      this.leftSidebar.appendChild(this.modeButton);
+      
+      this.leftSidebar.appendChild(document.createElement("br"));
+      this.leftSidebar.appendChild(highlightingDropdownLabel);
+      this.leftSidebar.appendChild(this.highlightingDropdown);
     }
     addLeftSidebarContent.call(this);
     
@@ -122,11 +140,24 @@ class UnicodeTextAnalyzerPage {
       this.largeCharacterView = document.createElement("div");
       this.largeCharacterView.className = "large-character-view";
       
+      this.largeCharacter = document.createElement("p");
+      this.largeCharacter.className = "large-character";
+      
+      this.dottedCircle = document.createElement("p");
+      this.dottedCircle.className = "large-character dotted-circle";
+      this.dottedCircle.textContent = "◌";
+      this.dottedCircle.style.display = "none"; // hide by default
+      
       this.characterDataTable = document.createElement("table");
       this.characterDataTable.className = "character-data-table";
       
+      this.largeCharacterView.appendChild(this.dottedCircle);
+      this.largeCharacterView.appendChild(this.largeCharacter);
       this.characterData.appendChild(this.largeCharacterView);
       this.characterData.appendChild(this.characterDataTable);
+      
+      // add character view
+      this.largeCharacter.textContent = "/";
       
       // create table header
       const headerRow = document.createElement("tr");
@@ -183,16 +214,9 @@ class UnicodeTextAnalyzerPage {
       }
       window.requestAnimationFrame(updateTable.bind(this));
       
+      this.rightSidebar.appendChild(this.characterData);
     }
     addRightSidebarContent.call(this);
-    
-    // add content to the page
-    this.leftSidebar.appendChild(this.modeButton);
-    this.leftSidebar.appendChild(this.debug);
-    
-    this.centerContent.appendChild(this.textArea);
-    
-    this.rightSidebar.appendChild(this.characterData);
     
     // ready functions
     function init() {
@@ -206,11 +230,39 @@ class UnicodeTextAnalyzerPage {
     }
   }
   
+  static highlightingModes = {
+    rainbow: function (char) {
+      const codePoint = char.codePointAt(0);
+      // color based on char code
+      return `hsl(${(codePoint * 10) % 360}, 50%, 20%)`;
+    },
+    category: function (char) {
+      const categories = Object.keys(
+        unicodeReadableMap.category
+      );
+      
+      const codePoint = char.codePointAt(0);
+      
+      const categoryIndex = categories.indexOf(
+        getCharacterData(char).category
+      );
+      
+      if (categoryIndex === -1) {
+        return "#000000" // default color for unknown categories
+      } else {
+        const hue = (categoryIndex * 360) / categories.length;
+        return `hsl(${hue}, 50%, 20%)`;
+      }
+    },
+  }
+  
   /**
    * mark text area
    * like highlighting characters based on their Unicode properties
    */
-  markTextArea(text, hightlighting) {
+  markTextArea(text, highlighting) {
+    if (this.mode !== "view") return;
+    
     const makeUnicodeCharacterDiv = (char) => {
       if (char === "\n") {
         // create a text node for newlines
@@ -222,9 +274,7 @@ class UnicodeTextAnalyzerPage {
       div.className = "unicode-character";
       div.contentEditable = false; // make the divs non-editable
       
-      const codePoint = char.codePointAt(0);
-      // console.log(char, codePoint);
-      div.style.backgroundColor = `hsl(${(codePoint * 10) % 360}, 50%, 20%)`; // color based on char code
+      div.style.backgroundColor = highlighting(char);
       
       return div;
     };
@@ -272,7 +322,10 @@ class UnicodeTextAnalyzerPage {
     // save existing text
     this.text = this.textArea.textContent;
     
-    this.markTextArea(this.text);
+    this.markTextArea(
+      this.text,
+      UnicodeTextAnalyzerPage.highlightingModes[this.highlightingMode],
+    );
   }
   
   editMode() {
@@ -294,6 +347,16 @@ class UnicodeTextAnalyzerPage {
   
   displayCharacterData(char) {
     const charData = getCharacterData(char);
+    
+    if (charData && charData.category === "Mn") {
+      // nonspacing mark
+      // show dotted circle for nonspacing marks
+      this.dottedCircle.style.display = "inline";
+    } else {
+      // hide dotted circle for other characters
+      this.dottedCircle.style.display = "none";
+    }
+      this.largeCharacter.textContent = char;
     
     // display character data for other attributes
     for (let i = 0; i < otherAttributes.length; i++) {
@@ -340,8 +403,8 @@ class UnicodeTextAnalyzerPage {
           value = "/";
         } else {
           value = (
-            `${value} (${parseInt(value, 16)})\n\n` +
-            `${String.fromCodePoint(parseInt(value, 16))}`
+            `${value} (${parseInt(value, 16)}) ` +
+            `(${String.fromCodePoint(parseInt(value, 16))})`
           )
         }
       } else if (map) {

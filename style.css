@@ -38,6 +38,20 @@ button {
   padding: 8px;
 }
 
+select {
+  color: inherit;
+  font-family: inherit;
+  font-size: inherit;
+  
+  background-color: #505050;
+  border: 1px solid #707070;
+  border-radius: 2px;
+  box-shadow: 0 0 4px #00000080;
+  
+  margin: 16px 0;
+  padding: 8px;
+}
+
 button:hover {
   background-color: #606060;
 }
@@ -142,4 +156,32 @@ tr:nth-child(odd) {
 
 .character-data-name {
   height: 48px;
+}
+
+.large-character-view {
+  background-color: #404040;
+  border: 1px solid #606060;
+  border-radius: 2px;
+  
+  margin-bottom: 16px;
+  
+  width: 300px;
+  height: 300px;
+  
+  overflow: hidden;
+  
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.large-character {
+  background-color: #505050;
+  
+  color: white;
+  font-size: 192px;
+}
+
+.dotted-circle {
+  color: #ffffff40;
 }
