@@ -496,6 +496,21 @@ class UnicodeTextAnalyzerPage {
       this.charView.mode = value;
     });
     
+    // add deselction
+    this.deselectCurrent = document.createElement("button");
+    this.deselectCurrent.className = "deselect-current-button";
+    this.deselectCurrent.textContent = "Deselect Character";
+    
+    this.deselectCurrent.addEventListener("click", () => {
+      if (this.charView.selectedChar) {
+        this.charView.selectedChar.classList.remove("unicode-character-hover");
+        this.charView.selectedChar = null; // reset selected char
+        this.lastChar = null; // reset last char
+        this.largeCharacter.textContent = " "; // clear large character view
+        this.dottedCircle.style.display = "none"; // hide dotted circle
+      }
+    });
+    
     // add text information
     this.textInfo = document.createElement("p");
     this.textInfo.className = "text-info";
@@ -529,6 +544,9 @@ class UnicodeTextAnalyzerPage {
     this.leftSidebar.appendChild(document.createElement("hr"));
     this.leftSidebar.appendChild(characterViewDropdownLabel);
     this.leftSidebar.appendChild(this.characterViewDropdown);
+    
+    this.leftSidebar.appendChild(document.createElement("br"));
+    this.leftSidebar.appendChild(this.deselectCurrent);
     
     this.leftSidebar.appendChild(document.createElement("hr"));
     this.leftSidebar.appendChild(this.textInfo);

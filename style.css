@@ -185,7 +185,7 @@ button:hover {
 
 .unicode-character-selected {
   background-color: #093da7 !important;
-  /* color: #ffffff; */
+  color: #ffffff;
 }
 
 .character-data-table {

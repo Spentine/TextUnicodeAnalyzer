@@ -22,4 +22,4 @@ There is also a separate text file to store the Unicode blocks, which isn't as h
 
 ## Custom Selection
 
-It seems pretty pointless, but I had to make a custom selection. The thing is, many weird diacritics won't show the selection, so the purpose of it was to actually display what it was selecting.
+It seems pretty pointless, but I had to make a custom selection. The thing is, many weird diacritics won't show the selection, so the purpose of it was to actually display what it was selecting. This, however, has some weird quirks. For one, 
