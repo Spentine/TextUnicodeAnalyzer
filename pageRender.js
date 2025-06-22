@@ -34,9 +34,9 @@ class UnicodeTextAnalyzerPage {
       this.centerContent = document.createElement("div");
       this.rightSidebar = document.createElement("div");
       
-      this.leftSidebar.className = "sidebar";
+      this.leftSidebar.className = "sidebar left-sidebar";
       this.centerContent.className = "center-content";
-      this.rightSidebar.className = "sidebar";
+      this.rightSidebar.className = "sidebar right-sidebar";
       
       this.rootElement.appendChild(this.leftSidebar);
       this.rootElement.appendChild(this.centerContent);
@@ -759,6 +759,7 @@ class UnicodeTextAnalyzerPage {
     this.charView.selectedChar = null; // reset selected char
     
     this.addEditModeContents();
+    this.resizeTextArea();
   }
   
   displayCharacterData(char) {

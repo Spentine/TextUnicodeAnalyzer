@@ -16,7 +16,10 @@ body {
   
   overflow: none;
   font-size: 16px;
+  
+  background: linear-gradient(45deg, #202020, #282828);
 }
+
 
 h1, h2, h3 {
   margin: 0;
@@ -86,8 +89,6 @@ button:hover {
 }
 
 .root {
-  background: linear-gradient(45deg, #202020, #282828);
-  
   font-family: "Unifont", sans-serif;
   color: #ffffff;
   
@@ -119,14 +120,99 @@ button:hover {
   overflow: hidden;
 }
 
+.left-sidebar {
+  order: 1;
+}
+
+.right-sidebar {
+  order: 3;
+}
+
 .center-content {
   flex: 1;
+  order: 2;
   
   padding: 16px;
   
   z-index: 1;
   
   overflow: auto;
+}
+
+@media (max-width: 1000px) {
+  body {
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+  
+  .root {
+    flex-wrap: wrap;
+    gap: 16px;
+    padding-top: 16px;
+    height: auto;
+  }
+  
+  .left-sidebar {
+    order: 1;
+  }
+  
+  .right-sidebar {
+    order: 2;
+  }
+  
+  .center-content {
+    order: 3;
+    min-width: 50%;
+    
+    padding: 0 16px 0 16px;
+  }
+  
+  .text-area-container {
+    width: calc(100% - 32px);
+    height: auto;
+    
+    margin: 0 16px 0 16px;
+  }
+}
+
+@media (max-width: 700px) {
+  body {
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+  
+  .root {
+    flex-wrap: wrap;
+    gap: 16px;
+    padding-top: 16px;
+    height: auto;
+  } 
+  
+  .sidebar {
+    min-width: 50%;
+  }
+  
+  .left-sidebar {
+    order: 1;
+  }
+  
+  .right-sidebar {
+    order: 2;
+  }
+  
+  .center-content {
+    order: 3;
+    min-width: 50%;
+    
+    padding: 0 16px 0 16px;
+  }
+  
+  .text-area-container {
+    width: calc(100% - 32px);
+    height: auto;
+    
+    margin: 0 16px 0 16px;
+  }
 }
 
 .text-area {
