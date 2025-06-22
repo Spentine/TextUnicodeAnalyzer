@@ -183,6 +183,11 @@ button:hover {
   color: #000000;
 }
 
+.unicode-character-selected {
+  background-color: #093da7 !important;
+  /* color: #ffffff; */
+}
+
 .character-data-table {
   background-color: #404040;
   border: 1px solid #606060;
@@ -256,4 +261,8 @@ tr:nth-child(odd) {
 
 .text-info {
   white-space: pre-wrap;
+}
+
+.view-area ::selection {
+  background: transparent;
 }

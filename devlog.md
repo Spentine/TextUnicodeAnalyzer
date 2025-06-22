@@ -19,3 +19,7 @@ To get the Unicode information, I had to read quite a bit. I found where the mai
 Turns out, there is a separate database for hanzi or kanji characters. That means, any hanzi that was selected would not have any information about it.
 
 There is also a separate text file to store the Unicode blocks, which isn't as hard to understand. It was self-explanatory when I saw the file.
+
+## Custom Selection
+
+It seems pretty pointless, but I had to make a custom selection. The thing is, many weird diacritics won't show the selection, so the purpose of it was to actually display what it was selecting.

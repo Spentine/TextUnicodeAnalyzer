@@ -134,7 +134,80 @@ class UnicodeTextAnalyzerPage {
     // add left sidebar content
     // note: the content is added every time the mode changes
     function addLeftSidebarContent() {
-      // this.addViewModeContents.call(this);
+      function getTextSelectionLoop() {
+        function removePreviousSelection(selection) {
+          for (const char of selection) {
+            if (char.nodeType !== Node.ELEMENT_NODE) continue; // skip text nodes
+            char.classList.remove("unicode-character-selected");
+          }
+          if (selection === this.textSelection) {
+            this.textSelection = []; // reset text selection
+          }
+        }
+        
+        function getTextSelection() {
+          const selection = window.getSelection();
+          if (selection.rangeCount === 0) {
+            removePreviousSelection.call(this, this.textSelection);
+            return; // no selection
+          };
+          
+          const range = selection.getRangeAt(0);
+          
+          // if there isn't a selection, return
+          if (range.collapsed) {
+            removePreviousSelection.call(this, this.textSelection);
+            return; // no selection
+          }
+          
+          // view area
+          if (range.commonAncestorContainer === this.viewArea) {
+            // get the start node of the selection
+            let node = range.startContainer.parentNode;
+            
+            // u cant highlight everything
+            if (node === this.viewArea) node = null;
+            
+            // try to find the start node anyways
+            if (!node) {
+              const children = this.viewArea.childNodes;
+              let i = 0;
+              while (range.comparePoint(children[i], 0) < 0) {
+                i++;
+              }
+              node = children[i];
+            }
+            
+            // get the characters to highlight
+            const oldTextSelection = this.textSelection ?? [];
+            this.textSelection = [];
+            while (range.comparePoint(node, 0) < 1) {
+              this.textSelection.push(node);
+              node = node.nextSibling;
+              if (!node) break; // reached the end of the selection
+            }
+            
+            if (
+              oldTextSelection[0] === this.textSelection[0] &&
+              oldTextSelection[oldTextSelection.length - 1] === this.textSelection[this.textSelection.length - 1]
+            ) return; // no change in selection
+            
+            // remove previous selection
+            removePreviousSelection.call(this, oldTextSelection);
+            
+            // highlight the selected characters
+            for (const char of this.textSelection) {
+              if (char.nodeType !== Node.ELEMENT_NODE) continue; // skip text nodes
+              char.classList.add("unicode-character-selected");
+            }
+          }
+        }
+        
+        getTextSelection.call(this);
+        window.requestAnimationFrame(getTextSelectionLoop.bind(this));
+      }
+      this.textSelection = [];
+      window.requestAnimationFrame(getTextSelectionLoop.bind(this));
     }
     addLeftSidebarContent.call(this);
     
